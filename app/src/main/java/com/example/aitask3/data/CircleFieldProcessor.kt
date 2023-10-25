@@ -166,8 +166,4 @@ class CircleFieldProcessor(startCircleField: CircleField = CircleField()) {
                 column = resultColumn
             )
     }
-
-    companion object {
-        const val NO_CIRCLE_FOUND = -1f
-    }
 }

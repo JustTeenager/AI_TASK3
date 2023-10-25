@@ -1,11 +1,12 @@
 package com.example.aitask3.ui.circle_field_view
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Switch
@@ -38,29 +39,49 @@ fun CircleFieldComposable(
         )
     }
 
-    var totalX by remember {
+    var totalCirclesX by remember {
         mutableStateOf(0)
     }
 
-    var totalY by remember {
+    var totalCirclesY by remember {
         mutableStateOf(0)
     }
 
     var isEditableField by remember { mutableStateOf(true) }
 
-    LaunchedEffect(totalX, totalY) {
+    LaunchedEffect(totalCirclesX, totalCirclesY) {
         fieldProcessor.init(
-            totalX,
-            totalY
+            totalCirclesX,
+            totalCirclesY
         )
     }
 
     fun DrawScope.calculateCircleCount() {
-        val paddedWidth = size.width - 2 * PADDING
-        val paddedHeight = size.height - 2 * PADDING
+        val rawWidth = size.width - 2 * PADDING
+        val rawHeight = size.height - 2 * PADDING
 
-        totalX = (paddedWidth / (2 * CIRCLE_RADIUS + PADDING)).toInt()
-        totalY = (paddedHeight / (2 * CIRCLE_RADIUS + PADDING)).toInt()
+        totalCirclesX = (rawWidth / (2 * CIRCLE_RADIUS + PADDING)).toInt()
+        totalCirclesY = (rawHeight / (2 * CIRCLE_RADIUS + PADDING)).toInt()
+    }
+
+    fun DrawScope.drawCircles() {
+        val field =
+            if (isEditableField) fieldProcessor.circleField.modifiableField else fieldProcessor.circleField.initialField
+
+        field.forEach { circleRow ->
+            circleRow.column.forEach {
+                val color = when (it.state) {
+                    CircleState.RED -> Color.Red
+                    CircleState.BLUE -> Color.Blue
+                    CircleState.EMPTY -> Color.Gray
+                }
+                drawCircle(
+                    color,
+                    CIRCLE_RADIUS,
+                    Offset(it.centerX.toFloat(), it.centerY.toFloat())
+                )
+            }
+        }
     }
 
     Column(
@@ -71,7 +92,7 @@ fun CircleFieldComposable(
     ) {
 
         Canvas(modifier = modifier
-            .fillMaxHeight(0.8f)
+            .fillMaxHeight(0.75f)
             .pointerInput(true) {
                 detectTapGestures {
                     if (isEditableField) {
@@ -79,36 +100,32 @@ fun CircleFieldComposable(
                     }
                 }
             }) {
+
             calculateCircleCount()
-
-            val field =
-                if (isEditableField) fieldProcessor.circleField.modifiableField else fieldProcessor.circleField.initialField
-
-            field.forEach { circleRow ->
-                circleRow.column.forEach {
-                    val color = when (it.state) {
-                        CircleState.RED -> Color.Red
-                        CircleState.BLUE -> Color.Blue
-                        CircleState.EMPTY -> Color.Gray
-                    }
-                    drawCircle(
-                        color,
-                        CIRCLE_RADIUS,
-                        Offset(it.centerX.toFloat(), it.centerY.toFloat())
-                    )
-                }
-            }
+            drawCircles()
         }
 
         Button(
             onClick = {
-                Log.d("tut", "onClick")
                 fieldProcessor.moveUnhappyCircles()
             },
             enabled = isEditableField
         ) {
             Text(text = "Преобразовать")
         }
+
+        Spacer(modifier = Modifier.height(3.dp))
+
+        Button(
+            onClick = {
+                isEditableField = false
+                fieldProcessor.init(totalCirclesX, totalCirclesY)
+            },
+        ) {
+            Text(text = "Сгенерить заново")
+        }
+
+        Spacer(modifier = Modifier.height(3.dp))
 
         Switch(
             checked = isEditableField,
