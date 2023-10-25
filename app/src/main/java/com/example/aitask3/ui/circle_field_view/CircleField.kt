@@ -68,8 +68,8 @@ fun CircleFieldComposable(
         val field =
             if (isEditableField) fieldProcessor.circleField.modifiableField else fieldProcessor.circleField.initialField
 
-        field.forEach { circleRow ->
-            circleRow.column.forEach {
+        field.forEach { circleColumn ->
+            circleColumn.column.forEach {
                 val color = when (it.state) {
                     CircleState.RED -> Color.Red
                     CircleState.BLUE -> Color.Blue
